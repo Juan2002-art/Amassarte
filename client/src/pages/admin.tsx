@@ -314,6 +314,19 @@ function MenuEditor({ config, updateConfig }: { config: any, updateConfig: any }
 
                     <div className="flex items-center space-x-4">
                         <Switch
+                            checked={localConfig.settings?.showBakery !== false}
+                            onCheckedChange={() => setLocalConfig({
+                                ...localConfig,
+                                settings: { ...localConfig.settings, showBakery: !localConfig.settings?.showBakery }
+                            })}
+                            id="show-bakery"
+                            className="data-[state=checked]:bg-amber-600"
+                        />
+                        <Label htmlFor="show-bakery" className="text-black font-bold cursor-pointer">Mostrar Sección de Panadería en el Menú</Label>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        <Switch
                             checked={localConfig.settings?.showImages !== false}
                             onCheckedChange={() => setLocalConfig({
                                 ...localConfig,
@@ -367,7 +380,7 @@ function MenuEditor({ config, updateConfig }: { config: any, updateConfig: any }
                 </CardContent>
             </Card>
 
-            {['clasicas', 'especiales', 'bebidas'].map(category => (
+            {['clasicas', 'especiales', 'bebidas', 'panaderia'].map(category => (
                 <Card key={category} className="bg-white border-none shadow-sm">
                     <CardHeader className="bg-gray-100/50 border-b flex flex-row justify-between items-center">
                         <CardTitle className="capitalize text-xl font-bold text-black">{category}</CardTitle>
@@ -409,7 +422,7 @@ function MenuEditor({ config, updateConfig }: { config: any, updateConfig: any }
                                         </div>
 
                                         {/* Tipos de Base Permitidos - Solo para pizzas */}
-                                        {category !== 'bebidas' && (
+                                        {category !== 'bebidas' && category !== 'panaderia' && (
                                             <div className="border-t pt-3 mt-2">
                                                 <Label className="text-xs text-black font-bold mb-2 block">Tipos de Base Permitidos</Label>
                                                 <div className="flex flex-wrap gap-2">
@@ -446,7 +459,7 @@ function MenuEditor({ config, updateConfig }: { config: any, updateConfig: any }
                                     <div className="flex flex-col gap-3 min-w-[200px]">
                                         <div className="flex gap-2">
                                             <div className="flex-1">
-                                                <Label className="text-[10px] font-bold uppercase text-black">Precio {category === 'bebidas' ? '' : 'Pers'}</Label>
+                                                <Label className="text-[10px] font-bold uppercase text-black">Precio {(category === 'bebidas' || category === 'panaderia') ? '' : 'Pers'}</Label>
                                                 <Input
                                                     type="number"
                                                     value={item.prices.personal}
@@ -454,7 +467,7 @@ function MenuEditor({ config, updateConfig }: { config: any, updateConfig: any }
                                                     className="h-9 bg-gray-50 font-mono"
                                                 />
                                             </div>
-                                            {category !== 'bebidas' && (
+                                            {category !== 'bebidas' && category !== 'panaderia' && (
                                                 <div className="flex-1">
                                                     <Label className="text-[10px] font-bold uppercase text-black">Grande</Label>
                                                     <Input

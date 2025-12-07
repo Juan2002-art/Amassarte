@@ -106,20 +106,22 @@ export function Menu() {
   const categories = [
     { id: 'clasicas', label: 'Clásicas' },
     { id: 'especiales', label: 'Especiales' },
-    ...(config.settings?.showDrinks ? [{ id: 'bebidas', label: 'Bebidas' }] : [])
+    ...(config.settings?.showDrinks ? [{ id: 'bebidas', label: 'Bebidas' }] : []),
+    ...(config.settings?.showBakery ? [{ id: 'panaderia', label: 'Panadería' }] : [])
   ];
 
   const isMitadDeCadaPizza = selectedItem?.id === 50;
 
   const isPizza = (item: any) => {
     // Logic: if it has prices.personal and is in pizza categories
-    return activeTab !== 'bebidas';
+    return activeTab !== 'bebidas' && activeTab !== 'panaderia';
   };
 
   const isBeverage = (item: any) => activeTab === 'bebidas';
+  const isBakeryItem = (item: any) => activeTab === 'panaderia';
 
   const handleItemClick = (item: any) => {
-    if (isBeverage(item)) {
+    if (isBeverage(item) || isBakeryItem(item)) {
       handleAddToCart({ ...item, price: item.prices.personal });
     } else if (isPizza(item)) {
       if (!item.available) return;
