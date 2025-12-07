@@ -415,22 +415,24 @@ export function Menu() {
                     <div key={categoryName}>
                       <h4 className="font-bold capitalize text-primary mb-3 border-b border-gray-100 pb-1 text-sm">{categoryName}</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {config.addons[categoryName].map((addon: any) => (
-                          <div key={addon.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 transition-colors">
-                            <Checkbox
-                              id={`addon-${addon.id}`}
-                              checked={selectedAddons.some(a => a.id === addon.id)}
-                              onCheckedChange={(checked) => handleAddonToggle(addon, checked as boolean)}
-                              className="border-gray-400 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
-                            <Label htmlFor={`addon-${addon.id}`} className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
-                              {addon.name}
-                            </Label>
-                            <span className="text-xs text-gray-400 font-mono tracking-tighter">
-                              {formatPrice(addon.price)}
-                            </span>
-                          </div>
-                        ))}
+                        {config.addons[categoryName]
+                          .filter((addon: any) => addon.available !== false)
+                          .map((addon: any) => (
+                            <div key={addon.id} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 transition-colors">
+                              <Checkbox
+                                id={`addon-${addon.id}`}
+                                checked={selectedAddons.some(a => a.id === addon.id)}
+                                onCheckedChange={(checked) => handleAddonToggle(addon, checked as boolean)}
+                                className="border-gray-400 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              />
+                              <Label htmlFor={`addon-${addon.id}`} className="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                                {addon.name}
+                              </Label>
+                              <span className="text-xs text-gray-400 font-mono tracking-tighter">
+                                {formatPrice(addon.price)}
+                              </span>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   ))}

@@ -1340,7 +1340,7 @@ function AddonsEditor({ config, updateConfig }: { config: any, updateConfig: any
 
     const addItem = (cat: string) => {
         const newAddons = JSON.parse(JSON.stringify(localConfig.addons));
-        newAddons[cat].push({ id: Date.now().toString(), name: "Nuevo Adicional", price: 5000 });
+        newAddons[cat].push({ id: Date.now().toString(), name: "Nuevo Adicional", price: 5000, available: true });
         updateAddons(newAddons);
     };
 
@@ -1371,13 +1371,21 @@ function AddonsEditor({ config, updateConfig }: { config: any, updateConfig: any
                                                 placeholder="Nombre"
                                             />
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-sm font-bold text-gray-500">$</span>
-                                            <Input
-                                                type="number"
-                                                className="w-20 h-8 text-right bg-white border border-gray-200 text-black font-bold rounded text-sm focus:border-black"
-                                                value={item.price}
-                                                onChange={(e) => handleUpdateItem(cat, idx, 'price', parseInt(e.target.value) || 0)}
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-sm font-bold text-gray-500">$</span>
+                                                <Input
+                                                    type="number"
+                                                    className="w-20 h-8 text-right bg-white border border-gray-200 text-black font-bold rounded text-sm focus:border-black"
+                                                    value={item.price}
+                                                    onChange={(e) => handleUpdateItem(cat, idx, 'price', parseInt(e.target.value) || 0)}
+                                                />
+                                            </div>
+                                            <Switch
+                                                checked={item.available !== false}
+                                                onCheckedChange={(checked) => handleUpdateItem(cat, idx, 'available', checked)}
+                                                className="scale-75 data-[state=checked]:bg-green-600"
+                                                title={item.available !== false ? "Disponible" : "No disponible"}
                                             />
                                             <Button
                                                 size="sm" variant="ghost"

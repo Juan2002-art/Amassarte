@@ -199,6 +199,11 @@ export function Checkout() {
         let itemStr = `${item.quantity}x ${item.name}`;
         const opts = item.options as any;
 
+        if (opts?.tamaño) {
+          const capitalizedSize = opts.tamaño.charAt(0).toUpperCase() + opts.tamaño.slice(1);
+          itemStr += ` [${capitalizedSize}]`;
+        }
+
         if (opts?.tipoPizza) {
           if (opts.tipoPizza === 'mitad') {
             itemStr += ` (Mitad: ${opts.mitadPizza1?.name} + ${opts.mitadPizza2?.name})`;
@@ -544,15 +549,7 @@ export function Checkout() {
                         >
                           🥤 Bebidas
                         </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setAddonsDialogOpen(true)}
-                          className="text-xs h-9 px-1 bg-orange-50 hover:bg-orange-100 border-orange-300"
-                        >
-                          ➕ Extras
-                        </Button>
+
                       </div>
                     </div>
                   </CardFooter>
