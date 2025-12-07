@@ -1,0 +1,247 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Playfair Display', serif;
+  --font-subtitle: 'Montserrat', sans-serif;
+
+  --radius: 0.5rem;
+}
+
+/* LIGHT MODE */
+:root {
+  /* Base Colors */
+  --background: 164 27% 23%;
+  /* #1A3A3B */
+  --foreground: 44 80% 90%;
+  /* #F5E8D0 - Warm Cream/Beige */
+
+  /* Card */
+  --card: 164 27% 28%;
+  --card-foreground: 44 80% 90%;
+
+  /* Popover */
+  --popover: 164 27% 28%;
+  --popover-foreground: 44 80% 90%;
+
+  /* Primary - Orange */
+  --primary: 25 95% 53%;
+  --primary-foreground: 44 80% 90%;
+
+  /* Secondary - Warm Cream */
+  --secondary: 44 80% 90%;
+  --secondary-foreground: 164 27% 23%;
+
+  /* Muted - Darker teal */
+  --muted: 164 27% 35%;
+  --muted-foreground: 44 80% 85%;
+
+  /* Accent - Orange for hovers */
+  --accent: 25 95% 53%;
+  --accent-foreground: 44 80% 90%;
+
+  /* Destructive */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 44 80% 90%;
+
+  /* Borders */
+  --border: 164 27% 35%;
+  --input: 164 27% 35%;
+  --ring: 25 95% 53%;
+
+  /* Charts */
+  --chart-1: 25 95% 53%;
+  --chart-2: 44 80% 90%;
+  --chart-3: 45 90% 50%;
+  --chart-4: 12 76% 61%;
+  --chart-5: 164 27% 28%;
+}
+
+.dark {
+  /* Dark mode - same as light mode for consistency */
+  --background: 164 27% 23%;
+  --foreground: 44 80% 90%;
+
+  --card: 164 27% 28%;
+  --card-foreground: 44 80% 90%;
+
+  --popover: 164 27% 28%;
+  --popover-foreground: 44 80% 90%;
+
+  --primary: 25 95% 53%;
+  --primary-foreground: 44 80% 90%;
+
+  --secondary: 44 80% 90%;
+  --secondary-foreground: 164 27% 23%;
+
+  --muted: 164 27% 35%;
+  --muted-foreground: 44 80% 85%;
+
+  --accent: 25 95% 53%;
+  --accent-foreground: 44 80% 90%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 44 80% 90%;
+
+  --border: 164 27% 35%;
+  --input: 164 27% 35%;
+  --ring: 25 95% 53%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    overflow-x: hidden !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-bold tracking-tight text-foreground;
+  }
+
+  /* Ensure all text is visible with proper contrast */
+  /* Ensure all text is visible with proper contrast */
+  /* REMOVED: Aggressive global reset that breaks utility classes
+  p,
+  span,
+  label,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  li,
+  div {
+    color: hsl(var(--foreground));
+  }
+  */
+
+  /* Input placeholders */
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--foreground) / 0.5);
+  }
+}
+
+/* Force override for Admin Select Items to fix yellow text issue */
+.admin-select-item,
+.admin-select-item span,
+.admin-select-item div,
+.admin-select-item * {
+  --foreground: 0 0% 0%;
+  /* Redefine foreground to black locally */
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.admin-select-item-cancel,
+.admin-select-item-cancel span,
+.admin-select-item-cancel * {
+  color: #dc2626 !important;
+  /* red-600 */
+  font-weight: 800 !important;
+}
+
+.admin-select-item:focus,
+.admin-select-item:focus *,
+.admin-select-item-cancel:focus,
+.admin-select-item-cancel:focus * {
+  background-color: #e5e7eb !important;
+  /* gray-200 */
+}
+
+.admin-select-item:focus,
+.admin-select-item:focus * {
+  color: #000000 !important;
+}
+
+.admin-select-item-cancel:focus,
+.admin-select-item-cancel:focus * {
+  background-color: #fef2f2 !important;
+  /* red-50 */
+  color: #b91c1c !important;
+  /* red-700 */
+}
+
+/* SCOPED ADMIN STYLES TO REMOVE YELLOW */
+.admin-page input::placeholder,
+.admin-page textarea::placeholder {
+  color: #6b7280 !important;
+  /* gray-500 */
+  opacity: 1 !important;
+}
+
+.admin-page .text-muted-foreground {
+  color: #4b5563 !important;
+  /* gray-600 - Override any yellow muted text */
+}
+
+.admin-page p,
+.admin-page span,
+.admin-page div,
+.admin-page label,
+.admin-page h1,
+.admin-page h2,
+.admin-page h3,
+.admin-page h4,
+.admin-page h5,
+.admin-page h6 {
+  /* Ensure no random element falls back to the light cream foreground */
+  color: inherit;
+}
+
+/* Re-enforce black for admin specific generic overrides if needed */
+.admin-page {
+  --foreground: 0 0% 0%;
+  /* Checkmate */
+}

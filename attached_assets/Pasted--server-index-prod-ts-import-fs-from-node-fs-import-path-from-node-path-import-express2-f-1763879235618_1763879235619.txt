@@ -1,0 +1,212 @@
+// server/index-prod.ts
+import fs from "node:fs";
+import path from "node:path";
+import express2 from "express";
+
+// server/app.ts
+import express from "express";
+
+// server/routes.ts
+import { createServer } from "http";
+import { google } from "googleapis";
+import { z } from "zod";
+var OrderSchema = z.object({
+  nombre: z.string().min(1, "El nombre es requerido"),
+  telefono: z.string().min(1, "El tel\xE9fono es requerido"),
+  direccion: z.string(),
+  tipoEntrega: z.enum(["domicilio", "recoger", "comeraqui"]),
+  formaPago: z.enum(["efectivo", "tarjeta", "transferencia"]),
+  detallesAdicionales: z.string().optional(),
+  items: z.string().min(1, "El pedido debe contener items"),
+  total: z.string()
+});
+function generateOrderId() {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `PED-${timestamp}-${random}`;
+}
+function mapTipoEntrega(value) {
+  const tipoEntregaMap = {
+    "domicilio": "Env\xEDo a Domicilio",
+    "recoger": "Recoger en Tienda",
+    "comeraqui": "Comer Aqu\xED"
+  };
+  return tipoEntregaMap[value] || value;
+}
+function mapFormaPago(value) {
+  const formaPagoMap = {
+    "efectivo": "Efectivo",
+    "tarjeta": "Tarjeta",
+    "transferencia": "Transferencia"
+  };
+  return formaPagoMap[value] || value;
+}
+async function getGoogleSheetsClient() {
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  const xReplitToken = process.env.REPL_IDENTITY ? "repl " + process.env.REPL_IDENTITY : process.env.WEB_REPL_RENEWAL ? "depl " + process.env.WEB_REPL_RENEWAL : null;
+  if (!xReplitToken) {
+    throw new Error("X_REPLIT_TOKEN not found for repl/depl");
+  }
+  const connectionSettings = await fetch(
+    "https://" + hostname + "/api/v2/connection?include_secrets=true&connector_names=google-sheet",
+    {
+      headers: {
+        Accept: "application/json",
+        X_REPLIT_TOKEN: xReplitToken
+      }
+    }
+  ).then((res) => res.json()).then((data) => data.items?.[0]);
+  const accessToken = connectionSettings?.settings?.access_token || connectionSettings.settings?.oauth?.credentials?.access_token;
+  if (!connectionSettings || !accessToken) {
+    throw new Error("Google Sheet not connected");
+  }
+  const oauth2Client = new google.auth.OAuth2();
+  oauth2Client.setCredentials({
+    access_token: accessToken
+  });
+  return google.sheets({ version: "v4", auth: oauth2Client });
+}
+async function registerRoutes(app2) {
+  app2.post("/api/order", async (req, res) => {
+    try {
+      const validatedData = OrderSchema.parse(req.body);
+      const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
+      if (!spreadsheetId) {
+        return res.status(500).json({ error: "Google Sheets ID not configured" });
+      }
+      const sheetsClient = await getGoogleSheetsClient();
+      const orderId = generateOrderId();
+      const now = /* @__PURE__ */ new Date();
+      const colombiaFormatter = new Intl.DateTimeFormat("es-CO", {
+        timeZone: "America/Bogota",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      const parts = colombiaFormatter.formatToParts(now);
+      const partsMap = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+      const fecha = `${partsMap.day}/${partsMap.month}/${partsMap.year}`;
+      const hora = `${partsMap.hour}:${partsMap.minute}:${partsMap.second}`;
+      const rowData = [
+        orderId,
+        fecha,
+        hora,
+        validatedData.nombre,
+        validatedData.telefono,
+        validatedData.direccion,
+        mapTipoEntrega(validatedData.tipoEntrega),
+        mapFormaPago(validatedData.formaPago),
+        validatedData.items,
+        validatedData.detallesAdicionales || "",
+        validatedData.total,
+        "Pendiente"
+      ];
+      const sheetResp = await sheetsClient.spreadsheets.values.get({
+        spreadsheetId,
+        range: "A:A"
+      });
+      const existingRows = sheetResp.data.values?.length || 1;
+      const nextRow = Math.max(existingRows + 1, 2);
+      await sheetsClient.spreadsheets.values.update({
+        spreadsheetId,
+        range: `A${nextRow}:L${nextRow}`,
+        valueInputOption: "USER_ENTERED",
+        requestBody: {
+          values: [rowData]
+        }
+      });
+      res.json({ success: true, orderId, message: "Pedido creado exitosamente" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inv\xE1lidos", details: error.errors });
+      }
+      console.error("Order error:", error);
+      res.status(500).json({ error: error.message || "Error al crear el pedido" });
+    }
+  });
+  const httpServer = createServer(app2);
+  return httpServer;
+}
+
+// server/app.ts
+function log(message, source = "express") {
+  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+var app = express();
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+app.use(express.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path2 = req.path;
+  let capturedJsonResponse = void 0;
+  const originalResJson = res.json;
+  res.json = function(bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path2.startsWith("/api")) {
+      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "\u2026";
+      }
+      log(logLine);
+    }
+  });
+  next();
+});
+async function runApp(setup) {
+  const server = await registerRoutes(app);
+  app.use((err, _req, res, _next) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    res.status(status).json({ message });
+    throw err;
+  });
+  await setup(app, server);
+  const port = parseInt(process.env.PORT || "5000", 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+}
+
+// server/index-prod.ts
+async function serveStatic(app2, server) {
+  const distPath = path.resolve(import.meta.dirname, "public");
+  if (!fs.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
+    );
+  }
+  app2.use(express2.static(distPath));
+  app2.use("*", (_req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
+  });
+}
+(async () => {
+  await runApp(serveStatic);
+})();
+export {
+  serveStatic
+};

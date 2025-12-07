@@ -1,0 +1,151 @@
+Crea un sitio web moderno, atractivo y altamente funcional para "AMASARTE", una pizzería especializada en pizzas artesanales, ingredientes frescos y servicio rápido. El sitio debe permitir que los clientes realicen pedidos en línea para domicilio, recoger en tienda o comer en el lugar.
+
+DISEÑO Y ESTÉTICA:
+
+Paleta de colores: verde (#2ECC71), verde oscuro (#1E8449), blanco (#FFFFFF), gris suave (#F2F2F2)
+
+Tipografía: Sans-serif moderna para títulos (ej. Poppins) y sans-serif limpia para textos (ej. Inter)
+
+Fotografía gastronómica de alta calidad (placeholders de Unsplash)
+
+Animaciones suaves con fade-in
+
+Estilo fresco, moderno y apetitoso
+
+HERO SECTION:
+
+Imagen fullscreen de una pizza artesanal
+
+Overlay sutil para mejorar legibilidad
+
+Título: “Pizzas que Enamoran”
+
+Subtítulo: “Sabor, arte y pasión en cada porción”
+
+Botones CTA: “Hacer Pedido Online” (verde) y “Ver Menú” (outline verde)
+
+Indicador animado de scroll
+
+SOBRE NOSOTROS (AMASARTE):
+
+Sección en dos columnas
+
+Historia de AMASARTE (2–3 párrafos)
+
+Filosofía: masa artesanal, ingredientes frescos y calidad constante
+
+Foto del maestro pizzero con su nombre
+
+Estadísticas: años de experiencia, pizzas vendidas, clientes felices
+
+MENÚ INTERACTIVO:
+
+Categorías: Pizzas clásicas / Pizzas especiales / Combos / Entradas / Bebidas
+
+Cada platillo incluye:
+
+Nombre destacado
+
+Descripción
+
+Precio
+
+Íconos de restricciones o preferencias
+
+Botón “Agregar al pedido”
+
+Sección “Favoritas de AMASARTE” con fotos
+
+Botón “Descargar menú en PDF”
+
+PEDIDOS ONLINE:
+
+Carrito flotante visible
+
+Opciones: domicilio, recoger, comer en local
+
+Personalización de pizzas: tamaño, ingredientes extra
+
+Checkout con datos del cliente
+
+Confirmación con número de pedido y tiempo estimado
+
+GALERÍA:
+
+Grid tipo masonry (3 columnas desktop, 1 en móvil)
+
+Fotos de pizzas, ingredientes, horno, equipo
+
+Lightbox al hacer clic
+
+Hover suave con zoom
+
+TESTIMONIOS:
+
+Carrusel automático
+
+Cada testimonial incluye: texto breve, nombre, estrellas y avatar
+
+Botón “Déjanos tu reseña”
+
+UBICACIÓN Y CONTACTO:
+
+Mapa interactivo
+
+Datos organizados:
+
+Dirección
+
+Teléfono clickeable
+
+WhatsApp
+
+Email
+
+Horarios
+
+Íconos a redes sociales
+
+FOOTER:
+
+Fondo verde oscuro
+
+Tres columnas:
+
+Logo y pequeña descripción
+
+Links rápidos (Inicio, Menú, Pedidos, Contacto)
+
+Newsletter con promociones
+
+Íconos de métodos de pago
+
+Copyright
+
+“Diseñado por [tu nombre]”
+
+CARACTERÍSTICAS TÉCNICAS:
+
+Responsive (mobile-first)
+
+Smooth scroll
+
+Navbar fijo
+
+Lazy loading
+
+Animaciones de entrada
+
+Hover states
+
+Optimización para carga rápida
+
+VERSIÓN MÓVIL:
+
+Menú hamburguesa animado
+
+CTA grandes y accesibles
+
+Pedidos en ancho completo
+
+Botón fijo “Hacer Pedido”
