@@ -189,6 +189,7 @@ function AdminDashboard() {
                                                             <SelectItem value="Pendiente" className="admin-select-item cursor-pointer">Pendiente</SelectItem>
                                                             <SelectItem value="En Preparación" className="admin-select-item cursor-pointer">En Preparación</SelectItem>
                                                             <SelectItem value="Listo" className="admin-select-item cursor-pointer">Listo</SelectItem>
+                                                            <SelectItem value="En Camino" className="admin-select-item cursor-pointer">En Camino</SelectItem>
                                                             <SelectItem value="Entregado" className="admin-select-item cursor-pointer">Entregado</SelectItem>
                                                             <SelectItem value="Pedido Cancelado" className="admin-select-item-cancel cursor-pointer">Pedido Cancelado</SelectItem>
                                                         </SelectContent>
