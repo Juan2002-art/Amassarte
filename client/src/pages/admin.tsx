@@ -117,6 +117,7 @@ function AdminDashboard() {
                         <TabsTrigger value="menu" className="px-4 py-2 text-gray-700 data-[state=active]:bg-gray-900 data-[state=active]:text-white">Menú</TabsTrigger>
                         <TabsTrigger value="promociones" className="px-4 py-2 text-gray-700 data-[state=active]:bg-gray-900 data-[state=active]:text-white">Promociones</TabsTrigger>
                         <TabsTrigger value="zonas" className="px-4 py-2 text-gray-700 data-[state=active]:bg-gray-900 data-[state=active]:text-white">Zonas</TabsTrigger>
+                        <TabsTrigger value="bases" className="px-4 py-2 text-gray-700 data-[state=active]:bg-gray-900 data-[state=active]:text-white">Tipos de Base</TabsTrigger>
                         <TabsTrigger value="adicionales" className="px-4 py-2 text-gray-700 data-[state=active]:bg-gray-900 data-[state=active]:text-white">Adicionales</TabsTrigger>
                     </TabsList>
                 </div>
@@ -212,6 +213,10 @@ function AdminDashboard() {
 
                 <TabsContent value="zonas">
                     <ZonesEditor config={config} updateConfig={updateConfig} />
+                </TabsContent>
+
+                <TabsContent value="bases">
+                    <BaseTypesEditor config={config} updateConfig={updateConfig} />
                 </TabsContent>
 
                 <TabsContent value="adicionales">
@@ -402,6 +407,40 @@ function MenuEditor({ config, updateConfig }: { config: any, updateConfig: any }
                                                 className="min-h-[60px] border-gray-300 text-sm"
                                             />
                                         </div>
+
+                                        {/* Tipos de Base Permitidos - Solo para pizzas */}
+                                        {category !== 'bebidas' && (
+                                            <div className="border-t pt-3 mt-2">
+                                                <Label className="text-xs text-black font-bold mb-2 block">Tipos de Base Permitidos</Label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {(localConfig.baseTypes || [
+                                                        { value: 'tomate', label: 'Salsa de Tomate' },
+                                                        { value: 'blanca', label: 'Base Blanca (Crema)' },
+                                                        { value: 'barbeque', label: 'Base BBQ' }
+                                                    ]).map((base: any) => {
+                                                        const isChecked = item.allowedBases?.includes(base.value) ?? true; // Por defecto todas permitidas
+                                                        return (
+                                                            <div key={base.value} className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded border border-gray-200">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isChecked}
+                                                                    onChange={(e) => {
+                                                                        const currentBases = item.allowedBases || (localConfig.baseTypes || []).map((b: any) => b.value);
+                                                                        const newBases = e.target.checked
+                                                                            ? [...currentBases, base.value]
+                                                                            : currentBases.filter((b: string) => b !== base.value);
+                                                                        handleUpdateItem(category, item.id, 'allowedBases', newBases);
+                                                                    }}
+                                                                    className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
+                                                                />
+                                                                <span className="text-xs text-gray-700">{base.label}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <p className="text-[10px] text-gray-400 mt-1">El cliente solo podrá elegir las bases marcadas para esta pizza</p>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="flex flex-col gap-3 min-w-[200px]">
@@ -557,8 +596,8 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
 
                     <div className="space-y-4">
                         {Array.isArray(localConfig.settings.promotions.custom) && localConfig.settings.promotions.custom.map((promo: any, idx: number) => (
-                            <div key={promo.id || idx} className="p-4 border rounded-lg bg-gray-50 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all">
-                                <div className="flex justify-between items-start gap-4">
+                            <div key={promo.id || idx} className="p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition-all">
+                                <div className="flex flex-col gap-4">
                                     <div className="flex-1 grid gap-3">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div className="space-y-1">
@@ -884,15 +923,24 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
                                         </details>
                                     </div>
 
-                                    <div className="flex flex-col gap-2 items-center pt-6">
-                                        <Switch
-                                            checked={promo.active}
-                                            onCheckedChange={(val) => updateCustomPromo(idx, 'active', val)}
-                                            className="data-[state=checked]:bg-green-600"
-                                        />
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase">{promo.active ? 'Activa' : 'Inactiva'}</span>
-                                        <Button variant="ghost" size="icon" onClick={() => removeCustomPromo(idx)} className="text-red-500 hover:bg-red-100 hover:text-red-600 mt-2">
-                                            <Trash2 size={18} />
+                                    {/* Botones de control al final */}
+                                    <div className="flex justify-between items-center gap-4 pt-4 border-t border-gray-200 mt-2">
+                                        <div className="flex items-center gap-3">
+                                            <Switch
+                                                checked={promo.active}
+                                                onCheckedChange={(val) => updateCustomPromo(idx, 'active', val)}
+                                                className="data-[state=checked]:bg-green-600"
+                                            />
+                                            <span className="text-sm font-bold text-gray-700">{promo.active ? '✅ Activa' : '❌ Inactiva'}</span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => removeCustomPromo(idx)}
+                                            className="text-red-500 hover:bg-red-100 hover:text-red-600 h-9 px-3"
+                                        >
+                                            <Trash2 size={16} className="mr-1" />
+                                            Borrar
                                         </Button>
                                     </div>
                                 </div>
@@ -1007,6 +1055,106 @@ function ZonesEditor({ config, updateConfig }: { config: any, updateConfig: any 
                 </div>
             </CardContent>
             <FixedSaveButton onClick={() => updateConfig(localConfig)} />
+        </Card>
+    );
+}
+
+function BaseTypesEditor({ config, updateConfig }: { config: any, updateConfig: any }) {
+    const [localConfig, setLocalConfig] = useState(config);
+    useEffect(() => setLocalConfig(config), [config]);
+
+    // Initialize baseTypes if missing
+    useEffect(() => {
+        if (!localConfig.baseTypes) {
+            setLocalConfig({
+                ...localConfig,
+                baseTypes: [
+                    { value: 'tomate', label: 'Salsa de Tomate' },
+                    { value: 'blanca', label: 'Base Blanca (Crema)' },
+                    { value: 'barbeque', label: 'Base BBQ' }
+                ]
+            });
+        }
+    }, []);
+
+    const handleLabelChange = (index: number, newLabel: string) => {
+        const newBaseTypes = [...(localConfig.baseTypes || [])];
+        newBaseTypes[index].label = newLabel;
+        setLocalConfig({ ...localConfig, baseTypes: newBaseTypes });
+    };
+
+    const handleValueChange = (index: number, newValue: string) => {
+        const newBaseTypes = [...(localConfig.baseTypes || [])];
+        newBaseTypes[index].value = newValue.toLowerCase().replace(/\s+/g, '_');
+        setLocalConfig({ ...localConfig, baseTypes: newBaseTypes });
+    };
+
+    const handleAddBase = () => {
+        const newBaseTypes = [...(localConfig.baseTypes || []), { value: 'nueva_base', label: 'Nueva Base' }];
+        setLocalConfig({ ...localConfig, baseTypes: newBaseTypes });
+    };
+
+    const handleDeleteBase = (index: number) => {
+        if (!window.confirm('¿Eliminar este tipo de base?')) return;
+        const newBaseTypes = [...(localConfig.baseTypes || [])];
+        newBaseTypes.splice(index, 1);
+        setLocalConfig({ ...localConfig, baseTypes: newBaseTypes });
+    };
+
+    return (
+        <Card className="shadow-md bg-white text-gray-900 border-none mb-24">
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="text-black font-bold">Tipos de Base / Salsas</CardTitle>
+                    <CardDescription className="text-gray-800 font-medium">Gestiona los tipos de base disponibles para las pizzas.</CardDescription>
+                </div>
+                <Button onClick={handleAddBase} size="sm" className="bg-black text-white hover:bg-gray-800">
+                    <Plus size={16} className="mr-2" /> Agregar Base
+                </Button>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                    {(localConfig.baseTypes || []).map((base: any, index: number) => (
+                        <div key={index} className="flex flex-col md:flex-row items-start md:items-center gap-3 p-4 border border-gray-200 rounded-lg bg-white shadow-sm hover:border-black transition-colors group">
+                            <div className="flex-1 w-full md:w-auto space-y-2">
+                                <div>
+                                    <Label className="text-xs text-gray-500 font-bold">Nombre (visible para clientes)</Label>
+                                    <Input
+                                        value={base.label}
+                                        onChange={(e) => handleLabelChange(index, e.target.value)}
+                                        className="font-medium text-sm text-gray-900 border-gray-300"
+                                        placeholder="Ej: Salsa Napolitana"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-xs text-gray-400 font-bold">ID (interno, sin espacios)</Label>
+                                    <Input
+                                        value={base.value}
+                                        onChange={(e) => handleValueChange(index, e.target.value)}
+                                        className="font-mono text-xs text-gray-600 border-gray-200 bg-gray-50"
+                                        placeholder="ej: napolitana"
+                                    />
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteBase(index)}
+                                className="h-9 w-9 text-gray-400 hover:text-red-500 hover:bg-red-50 self-end md:self-center"
+                            >
+                                <Trash2 size={16} />
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+                {(!localConfig.baseTypes || localConfig.baseTypes.length === 0) && (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <p className="text-gray-500 mb-2">No hay tipos de base configurados.</p>
+                        <Button onClick={handleAddBase} variant="outline" size="sm">Crear primer tipo de base</Button>
+                    </div>
+                )}
+            </CardContent>
+            <FixedSaveButton onClick={() => updateConfig(localConfig)} hasChanges={JSON.stringify(config) !== JSON.stringify(localConfig)} />
         </Card>
     );
 }

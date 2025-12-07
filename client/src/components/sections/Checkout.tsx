@@ -21,8 +21,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Trash2, Send, CheckCircle2, ShoppingCart } from 'lucide-react';
+import { Trash2, Send, CheckCircle2, ShoppingCart, Plus } from 'lucide-react';
 import { useConfig } from '@/hooks/useConfig';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Format price in Colombian pesos
 const formatPrice = (price: number): string => {
@@ -49,6 +50,11 @@ export function Checkout() {
     formaPago: 'efectivo',
     detallesAdicionales: '',
   });
+
+  // Estados para el diálogo de adicionales
+  const [addonsDialogOpen, setAddonsDialogOpen] = useState(false);
+  const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
+  const { addItem } = useCart();
 
   const zones = config?.zones || [];
 
@@ -129,6 +135,35 @@ export function Checkout() {
       zona: value,
       costoDomicilio: selectedZone ? selectedZone.price : 0
     }));
+  };
+
+  // Manejar selección de adicionales
+  const handleAddonToggle = (addon: any, checked: boolean) => {
+    if (checked) {
+      setSelectedAddons([...selectedAddons, addon]);
+    } else {
+      setSelectedAddons(selectedAddons.filter(a => a.id !== addon.id));
+    }
+  };
+
+  // Agregar adicionales al carrito
+  const handleAddAddonsToCart = () => {
+    if (selectedAddons.length === 0) {
+      toast.error('Selecciona al menos un adicional');
+      return;
+    }
+
+    selectedAddons.forEach(addon => {
+      addItem({
+        id: parseInt(addon.id) || Date.now(),
+        name: addon.name,
+        price: addon.price,
+      });
+    });
+
+    toast.success(`${selectedAddons.length} adicionales agregados al pedido`);
+    setSelectedAddons([]);
+    setAddonsDialogOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -462,10 +497,10 @@ export function Checkout() {
                     </div>
 
                     <div className="w-full space-y-2">
-                      <p className="text-xs text-gray-600 font-semibold text-center mb-2">
+                      <p className="text-xs text-white font-semibold text-center mb-2">
                         ¿Quieres agregar más productos?
                       </p>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-4 gap-2">
                         <Button
                           type="button"
                           variant="outline"
@@ -474,7 +509,7 @@ export function Checkout() {
                             const menuElement = document.getElementById('menu');
                             if (menuElement) menuElement.scrollIntoView({ behavior: 'smooth' });
                           }}
-                          className="text-xs h-9 px-2"
+                          className="text-xs h-9 px-1"
                         >
                           🍕 Pizzas
                         </Button>
@@ -486,7 +521,7 @@ export function Checkout() {
                             const promosElement = document.getElementById('promotions');
                             if (promosElement) promosElement.scrollIntoView({ behavior: 'smooth' });
                           }}
-                          className="text-xs h-9 px-2"
+                          className="text-xs h-9 px-1"
                         >
                           🎁 Promos
                         </Button>
@@ -505,9 +540,18 @@ export function Checkout() {
                               }, 500);
                             }
                           }}
-                          className="text-xs h-9 px-2"
+                          className="text-xs h-9 px-1"
                         >
                           🥤 Bebidas
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAddonsDialogOpen(true)}
+                          className="text-xs h-9 px-1 bg-orange-50 hover:bg-orange-100 border-orange-300"
+                        >
+                          ➕ Extras
                         </Button>
                       </div>
                     </div>
@@ -659,6 +703,108 @@ export function Checkout() {
           </div>
         </div>
       </section>
+
+      {/* Diálogo de Adicionales */}
+      <Dialog open={addonsDialogOpen} onOpenChange={setAddonsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Plus className="text-orange-500" size={28} />
+              Adicionales Disponibles
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Selecciona los extras que quieras agregar a tu pedido
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {config?.addons && Object.keys(config.addons).length > 0 ? (
+              Object.keys(config.addons).map((categoryName) => (
+                <div key={categoryName} className="space-y-3">
+                  <h3 className="font-bold text-lg capitalize text-gray-900 border-b-2 border-orange-300 pb-2 flex items-center gap-2">
+                    <span className="text-orange-500">🍕</span>
+                    {categoryName}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {config.addons[categoryName].map((addon: any) => (
+                      <div
+                        key={addon.id}
+                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-orange-50 transition-colors border border-gray-200 hover:border-orange-300"
+                      >
+                        <Checkbox
+                          id={`checkout-addon-${addon.id}`}
+                          checked={selectedAddons.some(a => a.id === addon.id)}
+                          onCheckedChange={(checked) => handleAddonToggle(addon, checked as boolean)}
+                          className="border-gray-400 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                        />
+                        <Label
+                          htmlFor={`checkout-addon-${addon.id}`}
+                          className="text-sm font-medium text-gray-900 cursor-pointer flex-1"
+                        >
+                          {addon.name}
+                        </Label>
+                        <span className="text-sm font-bold text-orange-600">
+                          {formatPrice(addon.price)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No hay adicionales disponibles en este momento
+              </div>
+            )}
+
+            {selectedAddons.length > 0 && (
+              <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border-2 border-orange-300 shadow-sm">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-bold text-gray-900">
+                    Seleccionados: {selectedAddons.length} {selectedAddons.length === 1 ? 'adicional' : 'adicionales'}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedAddons([])}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7"
+                  >
+                    Limpiar
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">
+                    {selectedAddons.map(a => a.name).join(', ')}
+                  </span>
+                  <span className="text-xl font-bold text-orange-600">
+                    + {formatPrice(selectedAddons.reduce((sum, a) => sum + a.price, 0))}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 mt-6 border-t pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedAddons([]);
+                setAddonsDialogOpen(false);
+              }}
+              className="flex-1 h-12 rounded-full border-gray-300 hover:bg-gray-100"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAddAddonsToCart}
+              disabled={selectedAddons.length === 0}
+              className="flex-1 h-12 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Agregar al Pedido
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

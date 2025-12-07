@@ -62,15 +62,8 @@ const imageMap: Record<number, string> = {
   16: aguaImage,
   17: refrescoImage,
   18: vino_blancoImage,
-  19: cervezaImage,
   20: gasosaImage
 };
-
-const baseOptions = [
-  { value: 'tomate', label: 'Salsa de Tomate' },
-  { value: 'blanca', label: 'Base Blanca (Crema)' },
-  { value: 'barbeque', label: 'Base BBQ' },
-];
 
 export function Menu() {
   const { config, isLoading } = useConfig();
@@ -87,6 +80,13 @@ export function Menu() {
   // Addons State
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [addonsOpen, setAddonsOpen] = useState(false);
+
+  // Get base options from config or use defaults
+  const baseOptions = config?.baseTypes || [
+    { value: 'tomate', label: 'Salsa de Tomate' },
+    { value: 'blanca', label: 'Base Blanca (Crema)' },
+    { value: 'barbeque', label: 'Base BBQ' },
+  ];
 
   if (isLoading) {
     return <div className="py-24 text-center text-white">Cargando menú...</div>;
@@ -126,8 +126,16 @@ export function Menu() {
       setSelectedItem(item);
       setMitadCadaPizza1(null);
       setMitadCadaPizza2(null);
-      setBaseType('tomate');
-      setSelectedSize('grande');
+
+      // Inicializar con la primera base permitida para esta pizza
+      const allowedBases = item.allowedBases && item.allowedBases.length > 0
+        ? item.allowedBases
+        : baseOptions.map(b => b.value);
+      const firstAllowedBase = baseOptions.find(b => allowedBases.includes(b.value));
+      setBaseType(firstAllowedBase?.value || baseOptions[0]?.value || 'tomate');
+
+      // Si es "Mitad de cada una" (id 50), forzar tamaño grande
+      setSelectedSize(item.id === 50 ? 'grande' : 'grande');
       setSelectedAddons([]); // Reset addons
       setAddonsOpen(false);
       setDialogOpen(true);
@@ -337,26 +345,31 @@ export function Menu() {
             {/* Size Selection */}
             <div>
               <Label className="text-base font-semibold mb-3 block" style={{ color: '#F5E8D0' }}>Tamaño de Pizza</Label>
+              {isMitadDeCadaPizza && (
+                <p className="text-sm text-orange-300 mb-2">⚠️ Esta opción solo está disponible en tamaño grande</p>
+              )}
               <RadioGroup value={selectedSize} onValueChange={(v: any) => setSelectedSize(v)}>
                 <div className="space-y-3">
-                  {(Object.entries(sizeLabels) as [keyof typeof sizeLabels, string][]).map(([size, label]) => {
-                    // Price logic similar to before
-                    let displayPrice = 0;
-                    if (isMitadDeCadaPizza && mitadCadaPizza1 && mitadCadaPizza2) {
-                      displayPrice = Math.round(mitadCadaPizza1.prices[size] / 2 + mitadCadaPizza2.prices[size] / 2);
-                    } else {
-                      displayPrice = selectedItem?.prices[size] || 0;
-                    }
-                    return (
-                      <div key={size} className="flex items-center space-x-2 p-3 border rounded-lg transition-colors cursor-pointer" style={{ backgroundColor: '#2A5A5B', borderColor: '#FF8533', color: '#F5E8D0' }}
-                        onClick={() => setSelectedSize(size)}
-                      >
-                        <RadioGroupItem value={size} id={size} />
-                        <Label htmlFor={size} className="flex-1 cursor-pointer font-semibold">{label}</Label>
-                        <span className="font-bold" style={{ color: '#FF8533' }}>{formatPrice(displayPrice)}</span>
-                      </div>
-                    );
-                  })}
+                  {(Object.entries(sizeLabels) as [keyof typeof sizeLabels, string][])
+                    .filter(([size]) => !isMitadDeCadaPizza || size === 'grande') // Solo grande para mitad
+                    .map(([size, label]) => {
+                      // Price logic similar to before
+                      let displayPrice = 0;
+                      if (isMitadDeCadaPizza && mitadCadaPizza1 && mitadCadaPizza2) {
+                        displayPrice = Math.round(mitadCadaPizza1.prices[size] / 2 + mitadCadaPizza2.prices[size] / 2);
+                      } else {
+                        displayPrice = selectedItem?.prices[size] || 0;
+                      }
+                      return (
+                        <div key={size} className="flex items-center space-x-2 p-3 border rounded-lg transition-colors cursor-pointer" style={{ backgroundColor: '#2A5A5B', borderColor: '#FF8533', color: '#F5E8D0' }}
+                          onClick={() => setSelectedSize(size)}
+                        >
+                          <RadioGroupItem value={size} id={size} />
+                          <Label htmlFor={size} className="flex-1 cursor-pointer font-semibold">{label}</Label>
+                          <span className="font-bold" style={{ color: '#FF8533' }}>{formatPrice(displayPrice)}</span>
+                        </div>
+                      );
+                    })}
                 </div>
               </RadioGroup>
             </div>
@@ -365,12 +378,21 @@ export function Menu() {
             <div>
               <Label className="text-base font-semibold mb-3 block" style={{ color: '#F5E8D0' }}>Tipo de Base</Label>
               <RadioGroup value={baseType} onValueChange={setBaseType}>
-                {baseOptions.map(option => (
-                  <div key={option.value} className="flex items-center space-x-2 mb-3 px-2">
-                    <RadioGroupItem value={option.value} id={option.value} />
-                    <Label htmlFor={option.value} className="text-base cursor-pointer hover:text-orange-300" style={{ color: '#F5E8D0' }}>{option.label}</Label>
-                  </div>
-                ))}
+                {baseOptions
+                  .filter(option => {
+                    // Si la pizza tiene allowedBases definido, filtrar por eso
+                    // Si no, mostrar todas las bases
+                    if (selectedItem?.allowedBases && selectedItem.allowedBases.length > 0) {
+                      return selectedItem.allowedBases.includes(option.value);
+                    }
+                    return true; // Por defecto mostrar todas
+                  })
+                  .map(option => (
+                    <div key={option.value} className="flex items-center space-x-2 mb-3 px-2">
+                      <RadioGroupItem value={option.value} id={option.value} />
+                      <Label htmlFor={option.value} className="text-base cursor-pointer hover:text-orange-300" style={{ color: '#F5E8D0' }}>{option.label}</Label>
+                    </div>
+                  ))}
               </RadioGroup>
             </div>
 
