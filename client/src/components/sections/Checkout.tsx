@@ -342,7 +342,14 @@ export function Checkout() {
                               className="flex justify-between items-start p-3 bg-muted rounded-lg group"
                             >
                               <div className="flex-1">
-                                <p className="font-semibold text-sm">{item.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-sm">{item.name}</p>
+                                  {opts?.esPromocion && (
+                                    <span className="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                                      Promo
+                                    </span>
+                                  )}
+                                </div>
                                 {item.options && (
                                   <>
                                     {opts?.tipoPizza === 'mitadCadaPizza' && (
@@ -367,19 +374,27 @@ export function Checkout() {
                                 </p>
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
-                                <select
-                                  value={item.quantity}
-                                  onChange={(e) =>
-                                    updateQuantity(index, parseInt(e.target.value))
-                                  }
-                                  className="w-12 px-1 py-1 border rounded text-xs"
-                                >
-                                  {[1, 2, 3, 4, 5].map((q) => (
-                                    <option key={q} value={q}>
-                                      {q}
-                                    </option>
-                                  ))}
-                                </select>
+                                {opts?.esPromocion ? (
+                                  <>
+                                    <div className="w-12 px-2 py-1 border rounded text-xs text-center bg-gray-100 font-semibold text-gray-600">
+                                      1
+                                    </div>
+                                  </>
+                                ) : (
+                                  <select
+                                    value={item.quantity}
+                                    onChange={(e) =>
+                                      updateQuantity(index, parseInt(e.target.value))
+                                    }
+                                    className="w-12 px-1 py-1 border rounded text-xs"
+                                  >
+                                    {[1, 2, 3, 4, 5].map((q) => (
+                                      <option key={q} value={q}>
+                                        {q}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
                                 <button
                                   onClick={() => removeItem(index)}
                                   className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded"
@@ -445,15 +460,57 @@ export function Checkout() {
                       <span>Total:</span>
                       <span className="text-primary">{formatPrice(finalTotal)}</span>
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={scrollToMenu}
-                      className="w-full rounded-full"
-                    >
-                      <ShoppingCart size={16} className="mr-2" />
-                      Volver al Menú
-                    </Button>
+
+                    <div className="w-full space-y-2">
+                      <p className="text-xs text-gray-600 font-semibold text-center mb-2">
+                        ¿Quieres agregar más productos?
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const menuElement = document.getElementById('menu');
+                            if (menuElement) menuElement.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="text-xs h-9 px-2"
+                        >
+                          🍕 Pizzas
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const promosElement = document.getElementById('promotions');
+                            if (promosElement) promosElement.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="text-xs h-9 px-2"
+                        >
+                          🎁 Promos
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const menuElement = document.getElementById('menu');
+                            if (menuElement) {
+                              menuElement.scrollIntoView({ behavior: 'smooth' });
+                              // Pequeño delay para que el scroll termine antes de cambiar tab
+                              setTimeout(() => {
+                                const bebidasTab = document.querySelector('[value="bebidas"]') as HTMLElement;
+                                if (bebidasTab) bebidasTab.click();
+                              }, 500);
+                            }
+                          }}
+                          className="text-xs h-9 px-2"
+                        >
+                          🥤 Bebidas
+                        </Button>
+                      </div>
+                    </div>
                   </CardFooter>
                 </Card>
               </motion.div>

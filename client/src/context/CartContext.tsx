@@ -65,6 +65,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateQuantity = (index: number, quantity: number) => {
+    // Prevent changing quantity for promotions
+    const item = items[index];
+    if (item?.options && 'esPromocion' in item.options && item.options.esPromocion) {
+      // Promotions are limited to quantity 1
+      return;
+    }
+
     if (quantity <= 0) {
       removeItem(index);
       return;
