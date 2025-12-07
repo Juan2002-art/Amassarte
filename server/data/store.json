@@ -12,8 +12,67 @@
       "freeDelivery": {
         "active": false
       },
-      "custom": []
-    }
+      "custom": [
+        {
+          "title": "Envío Gratis",
+          "description": "Te regalamos el domicilio en tu compra.",
+          "badge": "¡GRATIS!",
+          "logic": "limit_delivery",
+          "deliveryPrice": 0,
+          "validZoneIds": [],
+          "active": true,
+          "terms": "Válido para todas las zonas.",
+          "id": "1765121328921"
+        },
+        {
+          "title": "Martes de 2x1",
+          "description": "Compra 2 pizzas y paga solo la de mayor valor.",
+          "badge": "2x1",
+          "logic": "2x1",
+          "itemsToSelect": 2,
+          "validSizes": [
+            "personal"
+          ],
+          "active": false,
+          "terms": "Aplica en pizzas personales y grandes.",
+          "id": "1765121341161",
+          "daysOfWeek": [
+            0
+          ],
+          "validItemIds": [
+            1,
+            3,
+            5,
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "title": "Gaseosa Gratis",
+          "description": "Lleva una Coca Cola 1.5L por compras superiores a $60.000.",
+          "badge": "REGALO",
+          "logic": "gift",
+          "minOrderValue": 60000,
+          "giftItemName": "Coca Cola 1.5L",
+          "active": true,
+          "terms": "Una por pedido.",
+          "id": "1765121446854"
+        },
+        {
+          "title": "10% de Descuento",
+          "description": "Aprovecha un 10% de descuento en todo el menú.",
+          "badge": "-10%",
+          "logic": "discount",
+          "price": 10,
+          "active": false,
+          "terms": "Descuento aplicado al subtotal.",
+          "id": "1765121510620",
+          "discountPercent": 10
+        }
+      ]
+    },
+    "showBakery": false
   },
   "zones": [
     {

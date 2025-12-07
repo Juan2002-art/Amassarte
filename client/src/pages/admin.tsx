@@ -10,8 +10,16 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw, Save, Plus, Trash2, ChevronDown } from "lucide-react";
+import { ExternalLink, RefreshCw, Save, Plus, Trash2, ChevronDown, Copy } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Admin() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -171,9 +179,15 @@ function AdminDashboard() {
                                                     <div className="text-black font-bold">{order.formaPago}</div>
                                                 </TableCell>
                                                 <TableCell className="text-xs text-black max-w-[250px]">
-                                                    <div className="line-clamp-3 whitespace-pre-wrap font-bold text-gray-900" title={order.items}>
-                                                        {order.items}
-                                                    </div>
+                                                    <details className="group cursor-pointer">
+                                                        <summary className="font-bold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[250px] list-none marker:text-transparent">
+                                                            <span className="group-open:hidden">▶ {order.items.substring(0, 30)}...</span>
+                                                            <span className="hidden group-open:inline">▼ Ocultar</span>
+                                                        </summary>
+                                                        <div className="whitespace-pre-wrap font-bold text-gray-900 text-xs mt-1 bg-gray-100 p-2 rounded border border-gray-200">
+                                                            {order.items}
+                                                        </div>
+                                                    </details>
                                                     {order.detalles && <div className="text-orange-700 font-bold italic mt-1 line-clamp-1 text-[10px]" title={order.detalles}>Nota: {order.detalles}</div>}
                                                 </TableCell>
                                                 <TableCell className="font-bold text-black whitespace-nowrap text-sm">{order.total}</TableCell>
@@ -544,6 +558,77 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
         setLocalConfig({ ...localConfig, settings: newSettings });
     };
 
+    const addPromoFromTemplate = (templateData: any) => {
+        const newSettings = JSON.parse(JSON.stringify(localConfig.settings));
+        if (!newSettings.promotions.custom) newSettings.promotions.custom = [];
+        newSettings.promotions.custom.push({
+            ...templateData,
+            id: Date.now().toString(),
+        });
+        setLocalConfig({ ...localConfig, settings: newSettings });
+        toast.success("Promoción creada desde plantilla");
+    };
+
+    const PROMO_TEMPLATES = [
+        {
+            name: "Envío Gratis (Completo)",
+            icon: "🚚",
+            data: {
+                title: "Envío Gratis",
+                description: "Te regalamos el domicilio en tu compra.",
+                badge: "¡GRATIS!",
+                logic: 'limit_delivery',
+                deliveryPrice: 0,
+                validZoneIds: [], // Empty for all zones
+                active: true,
+                terms: "Válido para todas las zonas."
+            }
+        },
+        {
+            name: "2x1 en Pizzas (Martes)",
+            icon: "🍕",
+            data: {
+                title: "Martes de 2x1",
+                description: "Compra 2 pizzas y paga solo la de mayor valor.",
+                badge: "2x1",
+                logic: '2x1',
+                itemsToSelect: 2,
+                itemsToSelect: 2,
+                // daysOfWeek: [2], // COMENTADO: Para que aparezca siempre por defecto
+                validSizes: ['personal', 'grande'],
+                active: true,
+                terms: "Aplica en pizzas personales y grandes."
+            }
+        },
+        {
+            name: "Regalo: Coca Cola 1.5L",
+            icon: "🥤",
+            data: {
+                title: "Gaseosa Gratis",
+                description: "Lleva una Coca Cola 1.5L por compras superiores a $60.000.",
+                badge: "REGALO",
+                logic: 'gift',
+                minOrderValue: 60000,
+                giftItemName: "Coca Cola 1.5L",
+                active: true,
+                terms: "Una por pedido."
+            }
+        },
+        {
+            name: "Descuento 10%",
+            icon: "🏷️",
+            data: {
+                title: "10% de Descuento",
+                description: "Aprovecha un 10% de descuento en todo el menú.",
+                badge: "-10%",
+                logic: 'discount',
+                price: 10, // Assuming price field is used for percentage in discount logic, need to verify
+                active: true,
+                terms: "Descuento aplicado al subtotal."
+            }
+        }
+    ];
+
     const updateCustomPromo = (idx: number, field: string, value: any) => {
         const newSettings = JSON.parse(JSON.stringify(localConfig.settings));
         newSettings.promotions.custom[idx][field] = value;
@@ -603,9 +688,27 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
                 <div className="border-t pt-6">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-bold text-black">Campañas Personalizadas</h3>
-                        <Button onClick={addCustomPromo} size="sm" className="bg-black text-white hover:bg-gray-800">
-                            <Plus size={16} className="mr-2" /> Crear Nueva
-                        </Button>
+                        <div className="flex gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="border-dashed border-gray-400">
+                                        <Copy size={16} className="mr-2" /> Usar Plantilla
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="bg-white border-black">
+                                    <DropdownMenuLabel>Selecciona una plantilla</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {PROMO_TEMPLATES.map((tmpl, i) => (
+                                        <DropdownMenuItem key={i} onClick={() => addPromoFromTemplate(tmpl.data)} className="cursor-pointer hover:bg-gray-100">
+                                            <span className="mr-2">{tmpl.icon}</span> {tmpl.name}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button onClick={addCustomPromo} size="sm" className="bg-black text-white hover:bg-gray-800">
+                                <Plus size={16} className="mr-2" /> Crear Nueva
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -737,7 +840,14 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
                                                 <Label className="text-xs text-gray-500 font-bold">Tipo de Regla</Label>
                                                 <Select
                                                     value={promo.logic || 'simple'}
-                                                    onValueChange={(val) => updateCustomPromo(idx, 'logic', val)}
+                                                    onValueChange={(val) => {
+                                                        const newSettings = JSON.parse(JSON.stringify(localConfig.settings));
+                                                        newSettings.promotions.custom[idx].logic = val;
+                                                        if (val === 'limit_delivery') {
+                                                            newSettings.promotions.custom[idx].deliveryPrice = 0;
+                                                        }
+                                                        setLocalConfig({ ...localConfig, settings: newSettings });
+                                                    }}
                                                 >
                                                     <SelectTrigger className="bg-white border-gray-300 h-8 text-black">
                                                         <SelectValue />
@@ -745,7 +855,7 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
                                                     <SelectContent>
                                                         <SelectItem value="simple">Simple (Solo Botón)</SelectItem>
                                                         <SelectItem value="2x1">2x1 / Selección</SelectItem>
-                                                        <SelectItem value="limit_delivery">Domicilio Gratis / Especial</SelectItem>
+                                                        <SelectItem value="limit_delivery">Domicilio Gratis</SelectItem>
                                                         <SelectItem value="gift">Regalo (Producto)</SelectItem>
                                                         <SelectItem value="discount">Descuento (%)</SelectItem>
                                                     </SelectContent>
@@ -753,27 +863,61 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
                                             </div>
 
                                             {promo.logic === '2x1' && (
-                                                <div className="space-y-1">
-                                                    <Label className="text-xs text-gray-500 font-bold">Cant. a Escoger</Label>
-                                                    <Input
-                                                        type="number"
-                                                        value={promo.itemsToSelect || 2}
-                                                        onChange={(e) => updateCustomPromo(idx, 'itemsToSelect', parseInt(e.target.value))}
-                                                        className="bg-white border-gray-300 h-8 text-black"
-                                                    />
+                                                <div className="space-y-2">
+                                                    <div className="space-y-1">
+                                                        <Label className="text-xs text-gray-500 font-bold">Cant. a Escoger</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={promo.itemsToSelect || 2}
+                                                            onChange={(e) => updateCustomPromo(idx, 'itemsToSelect', parseInt(e.target.value))}
+                                                            className="bg-white border-gray-300 h-8 text-black"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1 border-t pt-2">
+                                                        <Label className="text-xs text-gray-500 font-bold mb-1 block">Tamaños Permitidos</Label>
+                                                        <div className="flex gap-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={!promo.validSizes || promo.validSizes.includes('personal')}
+                                                                    onChange={(e) => {
+                                                                        const current = promo.validSizes || ['personal', 'grande'];
+                                                                        let newSizes;
+                                                                        if (e.target.checked) newSizes = [...current, 'personal'];
+                                                                        else newSizes = current.filter((s: string) => s !== 'personal');
+                                                                        updateCustomPromo(idx, 'validSizes', newSizes);
+                                                                    }}
+                                                                    className="rounded border-gray-300 text-black focus:ring-black"
+                                                                />
+                                                                <span className="text-xs text-black">Personal</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={!promo.validSizes || promo.validSizes.includes('grande')}
+                                                                    onChange={(e) => {
+                                                                        const current = promo.validSizes || ['personal', 'grande'];
+                                                                        let newSizes;
+                                                                        if (e.target.checked) newSizes = [...current, 'grande'];
+                                                                        else newSizes = current.filter((s: string) => s !== 'grande');
+                                                                        updateCustomPromo(idx, 'validSizes', newSizes);
+                                                                    }}
+                                                                    className="rounded border-gray-300 text-black focus:ring-black"
+                                                                />
+                                                                <span className="text-xs text-black">Grande</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
 
                                             {promo.logic === 'limit_delivery' && (
                                                 <div className="col-span-1 md:col-span-2 space-y-2 border-t pt-2 mt-1">
                                                     <div className="flex justify-between items-center gap-2">
-                                                        <Label className="text-xs text-gray-500 font-bold">Costo envío ($0 = Gratis)</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={promo.deliveryPrice ?? 0}
-                                                            onChange={(e) => updateCustomPromo(idx, 'deliveryPrice', parseInt(e.target.value))}
-                                                            className="w-24 h-8 bg-white text-black border-gray-300"
-                                                        />
+                                                        <Label className="text-xs text-gray-500 font-bold">Costo envío</Label>
+                                                        <div className="px-3 py-1.5 bg-green-100 text-green-800 rounded text-xs font-bold border border-green-200 shadow-sm">
+                                                            🚀 GRATIS ($0)
+                                                        </div>
                                                     </div>
                                                     <div className="space-y-1">
                                                         <Label className="text-[10px] text-gray-400">Zonas Válidas (Deja vacío = Todas)</Label>

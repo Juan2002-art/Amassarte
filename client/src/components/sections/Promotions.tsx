@@ -9,6 +9,7 @@ import { Gift, Flame, Star, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // Helper to format price
 const formatPrice = (price: number): string => {
@@ -28,6 +29,7 @@ export function Promotions() {
   // Dialog State
   const [selectedPromo, setSelectedPromo] = useState<any>(null);
   const [selections, setSelections] = useState<any[]>([]);
+  const [selectedSize, setSelectedSize] = useState<string>('personal');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Check if user already has a promo in cart
@@ -44,6 +46,15 @@ export function Promotions() {
       const count = promo.itemsToSelect || 2;
       setSelections(new Array(count).fill(null));
       setSelectedPromo(promo);
+
+      // Initialize size based on functionality
+      const allowedSizes = promo.validSizes || ['personal', 'grande'];
+      if (allowedSizes.length === 1) {
+        setSelectedSize(allowedSizes[0]);
+      } else {
+        setSelectedSize('personal'); // Default
+      }
+
       setIsDialogOpen(true);
     } else {
       // Simple add
@@ -81,21 +92,20 @@ export function Promotions() {
       return;
     }
 
-    // Logic for 2x1: Price is max of selection prices
-    // Logic for Combo: Fixed price usually
     let finalPrice = selectedPromo.price;
     let nameDetail = "";
 
     if (selectedPromo.logic === '2x1') {
-      // Calculate max price for 2x1 logic if price is not fixed
-      // We assume "2x1" implies paying for the most expensive item, OR if a fixed price is set, use that.
-
+      // Calculate max price based on selected SIZE
       if (!selectedPromo.price || selectedPromo.price === 0) {
-        const maxPrice = Math.max(...selections.map(s => s.prices?.personal || 0));
-        finalPrice = maxPrice;
+        // Get the price property name, e.g. 'personal' or 'grande'
+        // Ensure we fallback to 0 safely
+        const prices = selections.map(s => (s.prices && s.prices[selectedSize]) ? s.prices[selectedSize] : 0);
+        finalPrice = Math.max(...prices);
       }
 
-      nameDetail = `(${selections.map(s => s.name).join(" + ")})`;
+      const sizeLabel = selectedSize.charAt(0).toUpperCase() + selectedSize.slice(1);
+      nameDetail = `(${sizeLabel}: ${selections.map(s => s.name).join(" + ")})`;
     }
 
     addPromoToCart(selectedPromo, `${selectedPromo.title} ${nameDetail}`, finalPrice);
@@ -105,6 +115,8 @@ export function Promotions() {
     [...(config?.menu?.clasicas || []), ...(config?.menu?.especiales || [])]
       .filter((p: any) => selectedPromo.validItemIds?.includes(p.id))
     : [];
+
+  const currentAllowedSizes = selectedPromo?.validSizes || ['personal', 'grande'];
 
   return (
     <>
@@ -133,10 +145,7 @@ export function Promotions() {
                 return false;
               }
 
-              // Date Range Check (Simple string comparison works for YYYY-MM-DD if in UTC, but safer to use Dates)
-              // Let's strip time for simple comparison
               const todayStr = today.toISOString().split('T')[0];
-
               if (p.startDate && p.startDate > todayStr) return false;
               if (p.endDate && p.endDate < todayStr) return false;
 
@@ -148,7 +157,7 @@ export function Promotions() {
                 backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url(${promo.imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                color: '#FFFFFF' // Force white text for contrast on images
+                color: '#FFFFFF'
               } : {
                 backgroundColor: '#1A3A3B',
                 color: '#F5E8D0'
@@ -247,13 +256,46 @@ export function Promotions() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="bg-white text-gray-900 max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center border-b pb-2 text-gray-900">Selecciona tus Pizzas</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-center border-b pb-2 text-gray-900">Configura tu Promo</DialogTitle>
           </DialogHeader>
+
+          {/* Size Selector */}
+          {currentAllowedSizes.length > 1 && (
+            <div className="py-2">
+              <Label className="text-gray-900 font-bold mb-2 block">Elige el Tamaño:</Label>
+              <div className="flex gap-4">
+                {currentAllowedSizes.includes('personal') && (
+                  <div
+                    onClick={() => setSelectedSize('personal')}
+                    className={`flex-1 p-3 border rounded-lg cursor-pointer text-center transition-all ${selectedSize === 'personal' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-black'}`}
+                  >
+                    <span className="font-bold text-sm">Personal</span>
+                  </div>
+                )}
+                {currentAllowedSizes.includes('grande') && (
+                  <div
+                    onClick={() => setSelectedSize('grande')}
+                    className={`flex-1 p-3 border rounded-lg cursor-pointer text-center transition-all ${selectedSize === 'grande' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-black'}`}
+                  >
+                    <span className="font-bold text-sm">Grande</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {/* If only one size, show info */}
+          {currentAllowedSizes.length === 1 && (
+            <div className="py-2 text-center bg-gray-50 rounded">
+              <span className="text-sm font-bold text-gray-600">Tamaño: {currentAllowedSizes[0] === 'personal' ? 'Personal' : 'Grande'}</span>
+            </div>
+          )}
+
           <div className="space-y-6 py-4">
             {selections.map((_, idx) => (
               <div key={idx} className="space-y-2">
-                <Label className="font-bold text-gray-900">Opción {idx + 1}</Label>
+                <Label className="font-bold text-gray-900">Pizza {idx + 1}</Label>
                 <Select
+                  value={selections[idx]?.name || ""}
                   onValueChange={(val) => {
                     const pizza = availablePizzas.find((p: any) => p.name === val);
                     const newSelections = [...selections];
@@ -277,7 +319,9 @@ export function Promotions() {
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="text-gray-900 border-gray-300 w-full sm:w-auto">Cancelar</Button>
-            <Button onClick={handleConfirmSelection} className="bg-black text-white hover:bg-gray-800 w-full sm:w-auto font-bold"> Confirmar </Button>
+            <Button onClick={handleConfirmSelection} className="bg-black text-white hover:bg-gray-800 w-full sm:w-auto font-bold">
+              Confirmar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
