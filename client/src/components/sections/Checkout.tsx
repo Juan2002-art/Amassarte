@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Trash2, Send, CheckCircle2, ShoppingCart, Plus } from 'lucide-react';
+import { Trash2, Send, CheckCircle2, ShoppingCart, Plus, X } from 'lucide-react';
 import { useConfig } from '@/hooks/useConfig';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -36,7 +36,7 @@ const formatPrice = (price: number): string => {
 };
 
 export function Checkout() {
-  const { items, total, clearCart, removeItem, updateQuantity } = useCart();
+  const { items, total, clearCart, removeItem, updateQuantity, removeAddon } = useCart();
   const { config } = useConfig();
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<{ orderId: string; timestamp: string } | null>(null);
@@ -403,9 +403,21 @@ export function Checkout() {
                                       </p>
                                     )}
                                     {opts?.adicionales && opts.adicionales.length > 0 && (
-                                      <div className="text-xs text-orange-600 mt-1 font-medium">
-                                        + {opts.adicionales.map((a: any) => a.name).join(', ')}
-                                      </div>
+                                      <ul className="text-xs text-orange-600 mt-1 font-medium space-y-0.5">
+                                        {opts.adicionales.map((a: any, addonIdx: number) => (
+                                          <li key={`${a.id}-${addonIdx}`} className="flex items-center gap-1">
+                                            <span>+ {a.name}</span>
+                                            <button
+                                              onClick={() => removeAddon(index, addonIdx)}
+                                              className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full p-0.5"
+                                              title="Eliminar adicional"
+                                              type="button"
+                                            >
+                                              <X size={12} />
+                                            </button>
+                                          </li>
+                                        ))}
+                                      </ul>
                                     )}
                                   </>
                                 )}
@@ -437,9 +449,10 @@ export function Checkout() {
                                 )}
                                 <button
                                   onClick={() => removeItem(index)}
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded"
+                                  className="p-1 hover:bg-red-100 rounded transition-colors text-red-500"
+                                  title="Eliminar del pedido"
                                 >
-                                  <Trash2 size={14} className="text-red-500" />
+                                  <Trash2 size={16} />
                                 </button>
                               </div>
                             </motion.div>

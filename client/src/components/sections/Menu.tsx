@@ -78,6 +78,7 @@ export function Menu() {
   const [selectedSize, setSelectedSize] = useState<'personal' | 'grande'>('personal');
 
   // Addons State
+  // Addons State
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [addonsOpen, setAddonsOpen] = useState(false);
 
@@ -137,8 +138,8 @@ export function Menu() {
       setBaseType(firstAllowedBase?.value || baseOptions[0]?.value || 'tomate');
 
       // Si es "Mitad de cada una" (id 50), forzar tamaño grande
-      setSelectedSize(item.id === 50 ? 'grande' : 'grande');
-      setSelectedAddons([]); // Reset addons
+      setSelectedSize(item.id === 50 ? 'grande' : 'personal');
+      setSelectedAddons([]);
       setAddonsOpen(false);
       setDialogOpen(true);
     }
@@ -176,6 +177,7 @@ export function Menu() {
     }
 
     // Add Addons Price
+    // Add Addons Price
     const addonsTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0);
     priceWithSize += addonsTotal;
 
@@ -195,6 +197,10 @@ export function Menu() {
     handleAddToCart(itemWithPrice, options);
     setDialogOpen(false);
     setSelectedItem(null);
+    setSelectedAddons([]);
+    setMitadCadaPizza1(null);
+    setMitadCadaPizza2(null);
+    setBaseType('tomate');
   };
 
   const handleAddonToggle = (addon: any, checked: boolean) => {

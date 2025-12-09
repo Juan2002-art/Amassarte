@@ -27,7 +27,7 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>, options?: PizzaOptions) => void;
+  addItem: (item: Omit<CartItem, 'quantity'>, options?: PizzaOptions, quantity?: number) => void;
   removeItem: (index: number) => void;
   updateQuantity: (index: number, quantity: number) => void;
   clearCart: () => void;
@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const { config } = useConfig();
 
-  const addItem = (item: Omit<CartItem, 'quantity'>, options?: PizzaOptions) => {
+  const addItem = (item: Omit<CartItem, 'quantity'>, options?: PizzaOptions, quantity: number = 1) => {
     // ... existing implementation
     setItems((prevItems) => {
       // Check if item with exact same options exists
@@ -53,10 +53,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (existingItemIndex > -1) {
         const newItems = [...prevItems];
-        newItems[existingItemIndex].quantity += 1;
+        newItems[existingItemIndex].quantity += quantity;
         return newItems;
       }
-      return [...prevItems, { ...item, quantity: 1, options }];
+      return [...prevItems, { ...item, quantity, options }];
     });
   };
 
@@ -81,6 +81,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         i === index ? { ...item, quantity } : item
       )
     );
+  };
+
+  const removeAddon = (itemIndex: number, addonIndex: number) => {
+    setItems((prevItems) => {
+      const newItems = [...prevItems];
+      const item = { ...newItems[itemIndex] };
+      
+      if (item.options && item.options.adicionales) {
+        const addonToRemove = item.options.adicionales[addonIndex];
+        // Remove addon from array
+        const newAddons = [...item.options.adicionales];
+        newAddons.splice(addonIndex, 1);
+        
+        // Update price
+        const newPrice = item.price - addonToRemove.price;
+        
+        // Update item
+        item.options = { ...item.options, adicionales: newAddons };
+        item.price = newPrice;
+        
+        newItems[itemIndex] = item;
+      }
+      
+      return newItems;
+    });
   };
 
   const clearCart = () => {
@@ -173,7 +198,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, itemCount }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, removeAddon, clearCart, total, itemCount }}>
       {children}
     </CartContext.Provider>
   );
