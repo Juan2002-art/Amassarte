@@ -11,9 +11,6 @@ export function Footer() {
               <Pizza className="h-8 w-8" style={{ color: '#FF8533' }} />
               <span className="font-display font-bold text-2xl tracking-tighter" style={{ color: '#F5E8D0' }}>AMASARTE</span>
             </div>
-            <p className="leading-relaxed mb-6" style={{ color: '#F5E8D0' }}>
-              Pasión por la pizza artesanal. Ingredientes frescos, masa madre y horno de leña para crear experiencias inolvidables.
-            </p>
           </div>
 
           {/* Quick Links */}
@@ -28,23 +25,6 @@ export function Footer() {
               <li><div className="h-4"></div></li>
               <li><a href="/admin" style={{ color: '#F5E8D0', opacity: 0.6 }} className="hover:text-orange-400 transition-colors text-xs flex items-center gap-1">🔐 Acceso Admin</a></li>
             </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h3 className="font-bold text-xl mb-6" style={{ color: '#F5E8D0' }}>Suscríbete</h3>
-            <p className="mb-4" style={{ color: '#F5E8D0' }}>Recibe promociones exclusivas y novedades.</p>
-            <form className="flex gap-2">
-              <input
-                type="email"
-                placeholder="Tu email"
-                className="rounded-lg px-4 py-2 w-full focus:outline-none text-white placeholder:opacity-60"
-                style={{ backgroundColor: '#2A5A5B', borderColor: '#FF8533', border: '2px solid', color: '#F5E8D0', placeholder: '#F5E8D0' }}
-              />
-              <button className="px-4 py-2 rounded-lg font-bold transition-colors text-white" style={{ backgroundColor: '#FF8533' }}>
-                OK
-              </button>
-            </form>
           </div>
         </div>
 

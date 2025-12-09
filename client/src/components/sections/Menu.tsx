@@ -35,6 +35,40 @@ import vino_blancoImage from '@assets/generated_images/white_sauvignon_blanc_win
 import cervezaImage from '@assets/generated_images/premium_lager_beer_glass.png';
 import gasosaImage from '@assets/generated_images/premium_gourmet_soda.png';
 
+// Expandable Description Component
+const ExpandableDescription = ({ text }: { text: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // If text is short, just show it
+  if (!text || text.length < 60) {
+    return <CardDescription className="text-base" style={{ color: '#F5E8D0' }}>{text}</CardDescription>;
+  }
+
+  return (
+    <div className="flex flex-col items-start">
+      <CardDescription
+        className={`text-base ${isExpanded ? '' : 'line-clamp-2'}`}
+        style={{ color: '#F5E8D0' }}
+      >
+        {text}
+      </CardDescription>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsExpanded(!isExpanded);
+        }}
+        className="flex items-center gap-1 text-xs font-bold text-orange-400 mt-1 hover:text-orange-300 transition-colors"
+      >
+        {isExpanded ? (
+          <>Ver menos <ChevronUp size={14} /></>
+        ) : (
+          <>Ver más <ChevronDown size={14} /></>
+        )}
+      </button>
+    </div>
+  );
+};
+
 // Format price in Colombian pesos
 const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('es-CO', {
@@ -289,7 +323,7 @@ export function Menu() {
                           )}
                         </div>
                       </div>
-                      <CardDescription className="text-base line-clamp-2" style={{ color: '#F5E8D0' }}>{item.desc}</CardDescription>
+                      <ExpandableDescription text={item.desc} />
                     </CardHeader>
                     <CardFooter className="mt-auto pt-4">
                       <Button
