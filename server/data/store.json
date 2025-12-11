@@ -2,8 +2,8 @@
   "settings": {
     "showDrinks": false,
     "showImages": false,
-    "siteActive": true,
-    "siteClosedMessage": "Hola hoy descansamos nos vemos el jueves con la mejor energia",
+    "siteActive": false,
+    "siteClosedMessage": "Hola nos vemos el 18 de diciembre",
     "promotions": {
       "twoForOne": {
         "active": false,
@@ -20,7 +20,7 @@
           "logic": "limit_delivery",
           "deliveryPrice": 0,
           "validZoneIds": [],
-          "active": true,
+          "active": false,
           "terms": "Válido para todas las zonas.",
           "id": "1765121328921"
         },
@@ -55,7 +55,7 @@
           "logic": "gift",
           "minOrderValue": 60000,
           "giftItemName": "Coca Cola 1.5L",
-          "active": true,
+          "active": false,
           "terms": "Una por pedido.",
           "id": "1765121446854"
         },
@@ -190,6 +190,14 @@
     {
       "name": "Santa Clara",
       "price": 5000
+    },
+    {
+      "name": "Emmanuel",
+      "price": 2000
+    },
+    {
+      "name": "Nueva Zona",
+      "price": 3000
     }
   ],
   "addons": {
@@ -325,7 +333,10 @@
           "grande": 33000
         },
         "tags": [],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 2,
@@ -338,7 +349,10 @@
         "tags": [
           "popular"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 3,
@@ -349,7 +363,11 @@
           "grande": 45000
         },
         "tags": [],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "blanca",
+          "napolitana"
+        ]
       },
       {
         "id": 4,
@@ -362,7 +380,10 @@
         "tags": [
           "popular"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 5,
@@ -373,7 +394,10 @@
           "grande": 44000
         },
         "tags": [],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 6,
@@ -386,7 +410,10 @@
         "tags": [
           "veg"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 50,
@@ -399,7 +426,10 @@
         "tags": [
           "popular"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       }
     ],
     "especiales": [
@@ -414,7 +444,10 @@
         "tags": [
           "gourmet"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 8,
@@ -427,18 +460,24 @@
         "tags": [
           "chef-choice"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 9,
-        "name": "Pico de pollo",
+        "name": "Pico di pollo",
         "desc": "Salsa napolitana, queso mozzarella, pollo desmechado, pico e gallo (tomate, cebolla, cilantro, limón)",
         "prices": {
           "personal": 24000,
           "grande": 43000
         },
         "tags": [],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 10,
@@ -451,7 +490,10 @@
         "tags": [
           "gourmet"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 11,
@@ -464,7 +506,10 @@
         "tags": [
           "spicy"
         ],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       },
       {
         "id": 12,
@@ -475,7 +520,10 @@
           "grande": 47000
         },
         "tags": [],
-        "available": true
+        "available": true,
+        "allowedBases": [
+          "napolitana"
+        ]
       }
     ],
     "bebidas": [
@@ -568,5 +616,15 @@
         "available": true
       }
     ]
-  }
+  },
+  "baseTypes": [
+    {
+      "value": "napolitana",
+      "label": "Salsa Napolitana"
+    },
+    {
+      "value": "blanca",
+      "label": "Base Blanca (Crema)"
+    }
+  ]
 }

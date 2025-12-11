@@ -4,6 +4,14 @@ import { storage } from "./storage";
 import { getGoogleSheetsClient } from "./services/google-sheets";
 import { z } from "zod";
 
+declare module "express-session" {
+  interface SessionData {
+    authenticated: boolean;
+  }
+}
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Amassarte18122025";
+
 const OrderSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
   telefono: z.string().min(1, "El teléfono es requerido"),
@@ -59,7 +67,39 @@ async function getTargetSheetName(client: any, spreadsheetId: string): Promise<s
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth Middleware
+  const requireAuth = (req: any, res: any, next: any) => {
+    if (req.session && req.session.authenticated) {
+      next();
+    } else {
+      res.status(401).json({ error: "Unauthorized" });
+    }
+  };
+
+  // Auth Routes
+  app.post("/api/login", (req, res) => {
+    const { password } = req.body;
+    if (password === ADMIN_PASSWORD) {
+      req.session.authenticated = true;
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ error: "Contraseña incorrecta" });
+    }
+  });
+
+  app.post("/api/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) return res.status(500).json({ error: "Error logging out" });
+      res.json({ success: true });
+    });
+  });
+
+  app.get("/api/check-auth", (req, res) => {
+    res.json({ authenticated: !!req.session.authenticated });
+  });
+
   // Config API routes
+
   app.get("/api/config", async (_req, res) => {
     try {
       const config = await storage.getConfig();
@@ -69,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/config", async (req, res) => {
+  app.post("/api/config", requireAuth, async (req, res) => {
     try {
       await storage.updateConfig(req.body);
       res.json({ success: true });
@@ -79,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Orders Management API
-  app.get("/api/orders", async (_req, res) => {
+  app.get("/api/orders", requireAuth, async (_req, res) => {
     try {
       const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
       if (!spreadsheetId) {
@@ -118,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/orders/:id/status", async (req, res) => {
+  app.post("/api/orders/:id/status", requireAuth, async (req, res) => {
     try {
       const { status } = req.body;
       const { id } = req.params;

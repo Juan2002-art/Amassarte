@@ -23,23 +23,51 @@ import {
 
 export default function Admin() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [password, setPassword] = useState("");
 
-    const handleLogin = (e: React.FormEvent) => {
+    useEffect(() => {
+        fetch('/api/check-auth')
+            .then(res => res.json())
+            .then(data => {
+                if (data.authenticated) setIsAuthenticated(true);
+            })
+            .finally(() => setIsLoading(false));
+    }, []);
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === "Amassarte18122025") {
-            setIsAuthenticated(true);
-            localStorage.setItem("admin_auth", "true");
-        } else {
-            toast.error("Contraseña incorrecta");
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            if (res.ok) {
+                setIsAuthenticated(true);
+                toast.success("Sesión iniciada");
+            } else {
+                toast.error("Contraseña incorrecta");
+            }
+        } catch (err) {
+            toast.error("Error de conexión");
         }
     };
 
-    useEffect(() => {
-        if (localStorage.getItem("admin_auth") === "true") {
-            setIsAuthenticated(true);
-        }
-    }, []);
+    const handleLogout = async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        setIsAuthenticated(false);
+        setPassword("");
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
+                <div className="animate-pulse text-gray-500 font-bold">Cargando panel...</div>
+            </div>
+        );
+    }
 
     if (!isAuthenticated) {
         return (
@@ -70,10 +98,10 @@ export default function Admin() {
         );
     }
 
-    return <AdminDashboard />;
+    return <AdminDashboard onLogout={handleLogout} />;
 }
 
-function AdminDashboard() {
+function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const { config, updateConfig } = useConfig();
     const queryClient = useQueryClient();
 
@@ -110,10 +138,7 @@ function AdminDashboard() {
         <div className="admin-page min-h-screen bg-gray-100 p-4 md:p-6 pb-24 font-sans text-gray-900">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 className="text-2xl md:text-3xl font-extrabold text-black">Panel de Administración</h1>
-                <Button variant="outline" onClick={() => {
-                    localStorage.removeItem("admin_auth");
-                    window.location.reload();
-                }} className="text-red-700 border-red-300 hover:bg-red-50 w-full md:w-auto bg-white">
+                <Button variant="outline" onClick={onLogout} className="text-red-700 border-red-300 hover:bg-red-50 w-full md:w-auto bg-white">
                     Cerrar Sesión
                 </Button>
             </div>
@@ -593,7 +618,7 @@ function PromosEditor({ config, updateConfig }: { config: any, updateConfig: any
                 badge: "2x1",
                 logic: '2x1',
                 itemsToSelect: 2,
-                itemsToSelect: 2,
+
                 // daysOfWeek: [2], // COMENTADO: Para que aparezca siempre por defecto
                 validSizes: ['personal', 'grande'],
                 active: true,
