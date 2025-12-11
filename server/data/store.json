@@ -2,7 +2,7 @@
   "settings": {
     "showDrinks": false,
     "showImages": false,
-    "siteActive": false,
+    "siteActive": true,
     "siteClosedMessage": "Hola nos vemos el 18 de diciembre",
     "promotions": {
       "twoForOne": {
@@ -72,7 +72,8 @@
         }
       ]
     },
-    "showBakery": false
+    "showBakery": false,
+    "estimatedDeliveryTime": "45-60 minutos"
   },
   "zones": [
     {

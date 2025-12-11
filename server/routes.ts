@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const response = await sheetsClient.spreadsheets.values.get({
         spreadsheetId,
-        range: `'${sheetName}'!A2:M`, // Use dynamic sheet name
+        range: `'${sheetName}'!A2:Z`, // Use dynamic sheet name
       });
 
       const rows = response.data.values || [];
@@ -184,9 +184,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const exactRow = rowIndex + 1; // 1-based index
 
       // Update Status Column (Current M -> Index 12 -> Col M)
-      // A=0, ... L=11, M=12.
-      // Range M{row}
-
       await sheetsClient.spreadsheets.values.update({
         spreadsheetId,
         range: `'${sheetName}'!M${exactRow}`,

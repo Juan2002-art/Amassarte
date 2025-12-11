@@ -416,6 +416,20 @@ function MenuEditor({ config, updateConfig }: { config: any, updateConfig: any }
                                 />
                             </div>
                         )}
+
+                        <div className="border-t border-gray-200 pt-4 mt-4">
+                            <Label className="text-black font-bold mb-2 block">Tiempo Estimado de Entrega</Label>
+                            <Input
+                                value={localConfig.settings?.estimatedDeliveryTime || ''}
+                                onChange={(e) => setLocalConfig({
+                                    ...localConfig,
+                                    settings: { ...localConfig.settings, estimatedDeliveryTime: e.target.value }
+                                })}
+                                className="bg-white border-gray-300 text-black font-medium"
+                                placeholder="Ej: 45 - 60 minutos"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Este tiempo se mostrará al cliente al seleccionar su barrio y en el rastreo de pedido.</p>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

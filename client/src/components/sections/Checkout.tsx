@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -21,7 +35,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Trash2, Send, CheckCircle2, ShoppingCart, Plus, X } from 'lucide-react';
+import { Trash2, Send, CheckCircle2, ShoppingCart, Plus, X, Check, ChevronsUpDown, Clock } from 'lucide-react';
 import { useConfig } from '@/hooks/useConfig';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -54,6 +68,7 @@ export function Checkout() {
   // Estados para el diálogo de adicionales
   const [addonsDialogOpen, setAddonsDialogOpen] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
+  const [openCombobox, setOpenCombobox] = useState(false);
   const { addItem } = useCart();
 
   const zones = config?.zones || [];
@@ -635,18 +650,61 @@ export function Checkout() {
                       <Label htmlFor="zona" className="font-semibold mb-2 block">
                         Zona de Entrega (Cartagena) *
                       </Label>
-                      <Select value={formData.zona} onValueChange={handleZoneChange}>
-                        <SelectTrigger className="rounded-lg">
-                          <SelectValue placeholder="Selecciona tu barrio/zona" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                          {zones.map((zone: any) => (
-                            <SelectItem key={zone.name} value={zone.name}>
-                              {zone.name} - {formatPrice(zone.price)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openCombobox}
+                            className="w-full justify-between rounded-lg font-normal text-left"
+                          >
+                            {formData.zona
+                              ? zones.find((zone: any) => zone.name === formData.zona)?.name
+                              : "Selecciona tu barrio/zona..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Buscar barrio..." />
+                            <CommandList>
+                              <CommandEmpty>Barrio no encontrado.</CommandEmpty>
+                              <CommandGroup className="max-h-[250px] overflow-y-auto">
+                                {zones.map((zone: any) => (
+                                  <CommandItem
+                                    key={zone.name}
+                                    value={zone.name}
+                                    onSelect={(currentValue) => {
+                                      handleZoneChange(zone.name === formData.zona ? "" : zone.name)
+                                      setOpenCombobox(false)
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        formData.zona === zone.name ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {zone.name} - {formatPrice(zone.price)}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+
+                      {config?.settings?.estimatedDeliveryTime && (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-3 text-blue-900 animate-in fade-in slide-in-from-top-1 shadow-sm">
+                          <div className="bg-white p-1.5 rounded-full shadow-sm">
+                            <Clock size={16} className="text-blue-600" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] uppercase font-bold text-blue-500 leading-tight">Tiempo Estimado</span>
+                            <span className="text-sm font-bold leading-tight">{config.settings.estimatedDeliveryTime}</span>
+                          </div>
+                        </div>
+                      )}
                       <p className="text-sm text-gray-500 mt-2">
                         Si no encuentras tu barrio, elige el más cercano.
                       </p>

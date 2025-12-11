@@ -6,11 +6,14 @@ import { Search, Loader2, ArrowLeft, Package, Clock, Motorbike, CheckCircle, XCi
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { useConfig } from "@/hooks/useConfig";
 
 export default function TrackOrder() {
     const [searchId, setSearchId] = useState("");
     const [searched, setSearched] = useState(false);
+
     const [, setLocation] = useLocation();
+    const { config } = useConfig();
 
     const { data: orders, isLoading } = useQuery({
         queryKey: ['orders'],
@@ -100,7 +103,19 @@ export default function TrackOrder() {
                                                 <p className="text-sm text-gray-700 font-medium mt-1">
                                                     {getStatusInfo(foundOrder.estado).text}
                                                 </p>
+
                                             </div>
+
+                                            {/* Estimated Delivery Time for Active Orders */}
+                                            {config?.settings?.estimatedDeliveryTime &&
+                                                !['Entregado', 'Pedido Cancelado'].includes(foundOrder.estado) && (
+                                                    <div className="bg-white/60 rounded-lg p-2 border border-black/5 mt-2 inline-flex items-center gap-2 px-3">
+                                                        <Clock size={14} className="text-gray-600" />
+                                                        <span className="text-xs font-bold text-gray-700">
+                                                            Tiempo Estimado: <span className="text-black">{config.settings.estimatedDeliveryTime}</span>
+                                                        </span>
+                                                    </div>
+                                                )}
 
                                             <div className="pt-4 border-t border-black/5 grid grid-cols-2 gap-4 text-left text-sm">
                                                 <div className="text-black">
@@ -126,6 +141,6 @@ export default function TrackOrder() {
                     </CardContent>
                 </Card>
             </div>
-        </div>
+        </div >
     );
 }
