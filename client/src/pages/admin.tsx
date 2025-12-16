@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useConfig } from "@/hooks/useConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -112,8 +112,57 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             if (!res.ok) throw new Error('Failed to fetch orders');
             return res.json();
         },
-        refetchInterval: 10000,
+        refetchInterval: 5000,
     });
+
+    const seenOrderIds = useRef<Set<string>>(new Set());
+    const isFirstLoad = useRef(true);
+
+    const [highlightedOrderId, setHighlightedOrderId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (highlightedOrderId) {
+            const element = document.getElementById(`order-${highlightedOrderId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Remove highlight after 5 seconds
+                const timer = setTimeout(() => setHighlightedOrderId(null), 5000);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [highlightedOrderId]);
+
+    useEffect(() => {
+        if (!orders || !Array.isArray(orders)) return;
+
+        const currentIds = new Set(orders.map((o: any) => o.id));
+
+        if (isFirstLoad.current) {
+            seenOrderIds.current = currentIds;
+            isFirstLoad.current = false;
+            return;
+        }
+
+        const newOrders = orders.filter((o: any) => !seenOrderIds.current.has(o.id));
+
+        if (newOrders.length > 0) {
+            toast.error(`¡NUEVO PEDIDO RECIBIDO! (${newOrders.length})`, {
+                duration: Infinity,
+                className: "bg-red-600 text-white font-bold border-2 border-white shadow-lg",
+                style: {
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    fontSize: '16px'
+                },
+                action: {
+                    label: 'VER',
+                    onClick: () => setHighlightedOrderId(newOrders[0].id)
+                }
+            });
+        }
+        
+        seenOrderIds.current = currentIds;
+    }, [orders]);
 
     const updateStatusMutation = useMutation({
         mutationFn: async ({ id, status }: { id: string, status: string }) => {
@@ -184,7 +233,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                     </TableHeader>
                                     <TableBody>
                                         {orders?.map((order: any) => (
-                                            <TableRow key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <TableRow 
+                                                key={order.id} 
+                                                id={`order-${order.id}`}
+                                                className={`border-b border-gray-100 transition-colors duration-500 ${highlightedOrderId === order.id ? 'bg-yellow-100 animate-pulse' : 'hover:bg-gray-50'}`}
+                                            >
                                                 <TableCell className="font-mono text-[10px] font-bold text-gray-400">{order.localId}</TableCell>
                                                 <TableCell className="font-mono text-xs font-bold text-black select-all cursor-pointer" title="Copiar">{order.id}</TableCell>
                                                 <TableCell className="whitespace-nowrap text-black text-xs">
